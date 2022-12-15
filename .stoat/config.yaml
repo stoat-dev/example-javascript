@@ -1,0 +1,14 @@
+version: 1
+enabled: true
+tasks:
+  merged-test-coverage:
+    static_hosting:
+      path: coverage/merged/lcov-report
+  storybook:
+    static_hosting:
+      path: storybook-static
+  cypress-video:
+    static_hosting:
+      path: cypress/videos/spec.js.mp4
+  build-time:
+    job_runtime:

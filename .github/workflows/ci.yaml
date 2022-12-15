@@ -1,0 +1,40 @@
+name: Continuous Integration
+
+on:
+  # Trigger the ci pipeline for every comment on the default branch or a pull request.
+  # The default branch for the sample repo is `master`.
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up node and cache
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16.8.0'
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile --prefer-offline
+
+      # This project has a `coverage` script that runs all the
+      #  tests and merge all their coverage reports.
+      - name: Run tests and generate report
+        run: yarn coverage
+
+      - name: Generate storybook
+        run: yarn build-storybook
+
+      # Run the Stoat action to upload and host all the build outputs.
+      - name: Run stoat action
+        uses: stoat-dev/stoat-action@v0
+        if: always()
