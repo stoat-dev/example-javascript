@@ -1,20 +1,18 @@
 version: 1
 enabled: true
-tasks:
-  merged-test-coverage:
-    metadata:
-      name: Test coverage report
-    static_hosting:
+plugins:
+  job_runtime:
+    enabled: true
+  static_hosting:
+    merged-test-coverage:
+      metadata:
+        name: Test coverage report
       path: coverage/merged/lcov-report
-  storybook:
-    metadata:
-      name: Storybook
-    static_hosting:
+    storybook:
+      metadata:
+        name: Storybook
       path: storybook-static
-  cypress-video:
-    metadata:
-      name: Cypress video
-    static_hosting:
+    cypress-video:
+      metadata:
+        name: Cypress video
       path: cypress/videos/spec.js.mp4
-  build-time:
-    job_runtime:
