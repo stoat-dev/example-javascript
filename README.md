@@ -1,30 +1,75 @@
-# Combining Storybook, Cypress and Jest Code Coverage
+# Preview JavaScript Build Artifacts Directly in Pull Request with Stoat
 
-Please refer to [this blog post for more detailed information](https://dev.to/penx/combining-storybook-cypress-and-jest-code-coverage-4pa5).
+This repo demos how to use Stoat for a typical JavaScript / TypeScript project. More details can be found in this article: [Preview JavaScript Build Artifacts Directly in Pull Request with Stoat](https://dev.to/tuliren/preview-javascript-typescript-build-artifacts-directly-in-pull-request-with-stoat-3nd1).
 
-This project shows how to collect code coverage from Storybook (e.g. when using [Chromatic](https://www.chromaticqa.com) for Visual Regression tests) and how to create a combined code coverage report for 3 types of test:
+This repo is forked from [`penx/storybook-code-coverage`](https://github.com/penx/storybook-code-coverage). See this article for details: [Combining Storybook, Cypress and Jest Code Coverage](https://dev.to/penx/combining-storybook-cypress-and-jest-code-coverage-4pa5).
 
-- Visual regression tests ([Storybook](https://storybook.js.org)/[Chromatic](https://www.chromaticqa.com))
-- Unit tests ([Jest](http://jestjs.io))
-- Integration tests ([Cypress](http://cypress.io))
+## Integration with Stoat in Three Steps
 
-You can view a report for each type of test, or view the coverage of all tests together.
+1. Add a GitHub workflow
 
-To try out this project this locally:
+    ```yaml
+    name: Continuous Integration
+    
+    on:
+      # Trigger the ci pipeline for every comment on the default branch or a pull request.
+      # The default branch for the sample repo is `master`.
+      push:
+        branches:
+          - master
+      pull_request:
+        branches:
+          - master
+    
+    jobs:
+      ci:
+        runs-on: ubuntu-latest
+        steps:
+          - name: Checkout code
+            uses: actions/checkout@v2
+    
+          - name: Set up node and cache
+            uses: actions/setup-node@v3
+            with:
+              node-version: '16.8.0'
+              cache: 'yarn'
+    
+          - name: Install dependencies
+            run: yarn install --frozen-lockfile --prefer-offline
+    
+          # This project has a `coverage` script that runs all the
+          #  tests and merge all their coverage reports.
+          - name: Run tests and generate report
+            run: yarn coverage
+    
+          - name: Generate storybook
+            run: yarn build-storybook
+    
+          - name: Run stoat action
+            uses: stoat-dev/stoat-action@v0
+            if: always()
+    ```
 
-```sh
-git clone git@github.com:penx/storybook-code-coverage.git
-cd storybook-code-coverage
-yarn
-yarn coverage
-open coverage/merged/lcov-report/index.html
-```
+2. Install the Stoat app
 
-## Combining coverage
+The Stoat app can be installed [here](https://github.com/apps/stoat-app).
 
-You can also [merge reports with codecov](https://docs.codecov.io/docs/merging-reports).
+3. Add a Stoat config
 
-## Known issues
+    ```yaml
+    ---
+    version: 1
+    enabled: true
+    plugins:
+      job_runtime:
+        enabled: true
+      static_hosting:
+        merged-test-coverage:
+          path: coverage/merged/lcov-report
+        storybook:
+          path: storybook-static
+        cypress-video:
+          path: cypress/videos/spec.js.mp4
+    ```
 
-- cypress-specific nyc settings have to go in to generic files (e.g. `package.json` or `.nycrc`)
-- There's a bug with create-react-app@3.4.1 that prevents this from working, so for now you have to roll back to 3.4.0 [facebook/create-react-app#8689](https://github.com/facebook/create-react-app/issues/8689).
+That's it. See an example in [this pull request](https://github.com/stoat-dev/example-javascript/pull/1).
